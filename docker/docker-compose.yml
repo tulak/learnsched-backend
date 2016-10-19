@@ -1,0 +1,33 @@
+version: '2'
+services:
+  web:
+    build: web/
+    working_dir: /app/learnsched
+    links:
+      - postgresql
+    volumes:
+      - ../:/app/learnsched/
+      - bundle:/bundle
+    env_file:
+      - postgres.env
+    environment:
+      - BUNDLE_GEMFILE=/app/learnsched/Gemfile
+      - BUNDLE_JOBS=10
+      - BUNDLE_PATH=/bundle
+      - LESSCHARSET=utf-8
+
+  postgresql:
+    image: postgres
+    env_file:
+      - postgres.env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  postgresql_services:
+    build: postgresql_services/
+    env_file:
+      - postgres.env
+
+volumes:
+  bundle:
+  postgres_data:

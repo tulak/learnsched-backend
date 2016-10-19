@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+PROJECT_NAME=learnsched
+COMPOSE_COMMAND="docker-compose -f docker/docker-compose.yml -p $PROJECT_NAME"
+RUN_COMMAND="$COMPOSE_COMMAND run --rm"
+
+SUB_COMMAND=$1
+shift # extracts $SUB_COMMAND from $@
+case "$SUB_COMMAND" in
+    server|s)
+        CMD="$RUN_COMMAND -p 80:80 web bundle exec rails s -b 0.0.0.0 -p 80 $@"
+        ;;
+    console|c)
+        CMD="$RUN_COMMAND web bundle exec rails c $@"
+        ;;
+    bundle-install|bi)
+        CMD="$RUN_COMMAND web bundle install $@"
+        ;;
+    bundle-update|bu)
+        CMD="$RUN_COMMAND web bundle update $@"
+        ;;
+    bundle-exec|be)
+        CMD="$RUN_COMMAND web bundle exec $@"
+        ;;
+    psql)
+        CMD="$RUN_COMMAND postgresql_services psql $@"
+        ;;
+    pg_dump)
+        CMD="$RUN_COMMAND postgresql_services pg_dump $@"
+        ;;
+    stop)
+        CMD="$COMPOSE_COMMAND stop"
+        ;;
+    docker-run|dr)
+        CMD="$RUN_COMMAND $@"
+        ;;
+    help|*)
+        echo "Helper script for accessing rails commands inside of docker containers"
+        echo "USAGE: dev [COMMAND] [arguments]"
+        echo "Available commands:"
+        echo "  server | s               - starts rails server"
+        echo "  console | c              - starts rails console"
+        echo "  bundle-install | bi      - runs: bundle install [arguments]"
+        echo "  bundle-update | bu       - runs: bundle update [arguments]"
+        echo "  bundle-exec | be         - runs: bundle exec [arguments]"
+        echo "  psql                     - starts psql console"
+        echo "  stop                     - stops all containers in docker-compose"
+        echo "  docker-run | dr          - runs docker command in docker-compose context"
+        exit 1
+esac
+
+>&2 echo "Executing: $CMD"
+eval $CMD
